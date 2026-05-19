@@ -26,13 +26,22 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Fill the user model with validated name and email
+        $user->fill($request->validated());
+
+        // Explicitly update your custom game stats
+        $user->blacklist_rank = $request->blacklist_rank;
+        $user->bounty = $request->bounty;
+        $user->cars_owned = $request->cars_owned;
+        $user->rivals_left = $request->rivals_left;
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

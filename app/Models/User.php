@@ -21,6 +21,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar', 
+        'blacklist_rank',
+        'bounty',
+        'cars_owned',
+        'rivals_left',
     ];
 
     /**

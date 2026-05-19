@@ -32,9 +32,9 @@
                             </div>
 
                             <div class="relative">
-                                <img class="h-10 w-10 rounded-sm object-cover border border-red-600/50 shadow-[0_0_10px_rgba(230,43,43,0.3)]"
-                                    src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : asset('images/avatars/' . strtolower(Auth::user()->name) . '.png') }}"
-                                    onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&color=7b9acc&background=1a1a1a'"
+                                <img class="h-10 w-10 rounded-sm object-cover border border-red-600/50 shadow-[0_0_10px_rgba(230,43,43,0.3)] bg-black"
+                                    src="{{ asset('images/avatars/' . (Auth::user()->avatar ?? 'nfsmw.jpg')) }}"
+                                    onerror="this.src='{{ asset('images/avatars/nfsmw.jpg') }}'"
                                     alt="{{ Auth::user()->name }}">
                                 <div class="absolute inset-0 border border-white/10 pointer-events-none"></div>
                             </div>

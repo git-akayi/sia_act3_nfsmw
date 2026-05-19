@@ -1,18 +1,34 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-black text-2xl text-[#e32b2b] leading-tight uppercase tracking-[0.2em] italic drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">
+            <h2 class="font-black text-2xl text-[#e32b2b] leading-tight uppercase tracking-[0.2em] italic">
                 {{ __('Driver Command Center') }}
             </h2>
-            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest animate-pulse italic">
-                // System Active
-            </span>
+
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest animate-pulse italic">
+                        // System Active
+                    </p>
+                    <p class="font-black text-white italic uppercase tracking-tighter">
+                        OFFICER: {{ Auth::user()->name }}
+                    </p>
+                </div>
+
+                <div class="relative">
+                    <img src="{{ asset('images/avatars/' . (Auth::user()->avatar ?? 'nfsmw.jpg')) }}"
+                        onerror="this.src='{{ asset('images/avatars/nfsmw.jpg') }}'"
+                        class="w-12 h-12 border-2 border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)] object-cover bg-black"
+                        alt="{{ Auth::user()->name }}">
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent pointer-events-none"></div>
+                </div>
+            </div>
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            
+
             <h1 class="text-4xl font-black text-red-600 uppercase tracking-tighter mb-8 italic drop-shadow-md">
                 RAP SHEET: {{ Auth::user()->name }}
             </h1>
@@ -32,7 +48,7 @@
 
                 <div class="bg-[#222222] border-l-4 border-red-600 p-6 shadow-[5px_5px_15px_rgba(0,0,0,0.5)] transform hover:translate-y-[-4px] transition-all">
                     <p class="text-[10px] text-gray-400 uppercase font-extrabold tracking-widest mb-1">Cars Owned</p>
-                    <p class="text-4xl font-black text-white">{{ Auth::user()->cars_owned ?? '1' }}</p>
+                    <p class="text-4xl font-black text-white">{{ Auth::user()->cars_owned ?? '0' }}</p>
                 </div>
 
                 <div class="bg-[#222222] border-l-4 border-red-600 p-6 shadow-[5px_5px_15px_rgba(0,0,0,0.5)] transform hover:translate-y-[-4px] transition-all">
