@@ -26,6 +26,9 @@ class User extends Authenticatable
         'bounty',
         'cars_owned',
         'rivals_left',
+        'signature_car',
+        'territory',
+        'race_specialty'
     ];
 
     /**

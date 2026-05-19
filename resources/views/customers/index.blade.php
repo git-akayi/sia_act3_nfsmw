@@ -1,109 +1,82 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-red-600 leading-tight uppercase tracking-widest">
-                {{ __('Rockport PD: Blacklist Database') }}
-            </h2>
-            <a href="{{ route('customers.create') }}" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded shadow-lg transition duration-150">
-                + REGISTER NEW RIVAL
-            </a>
-        </div>
+        <h2 class="font-black text-2xl text-[#e32b2b] leading-tight uppercase tracking-[0.2em] italic">
+            {{ __('Rockport PD: Blacklist Database') }}
+        </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-gray-900 overflow-hidden shadow-2xl sm:rounded-lg border border-gray-800">
-                <div class="p-6 text-gray-100">
-                    
-                    @if(session('success'))
-                        <div class="mb-4 p-4 bg-green-900/30 border-l-4 border-green-500 text-green-200 text-sm uppercase font-bold">
-                            {{ session('success') }}
-                        </div>
-                    @endif
+            <div class="mb-8 flex justify-between items-center">
+                <h1 class="text-3xl font-black text-red-600 uppercase tracking-tighter italic drop-shadow-md">
+                    LIVE TARGET LEADERBOARD
+                </h1>
+            </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-gray-700 bg-black text-xs uppercase tracking-[0.2em] text-gray-500">
-                                    <th class="p-4 text-center">Rank</th>
-                                    <th class="p-4">Driver Details</th>
-                                    <th class="p-4">Signature Ride</th>
-                                    <th class="p-4">Bounty</th>
-                                    <th class="p-4">Strength</th>
-                                    <th class="p-4">Territory</th>
-                                    <th class="p-4 text-center">Actions</th>
+            <div class="bg-[#141414] border border-gray-900 shadow-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-black border-b-2 border-red-600/30 text-gray-400 font-black text-xs uppercase tracking-widest italic">
+                                <th class="p-4 text-center w-20">Rank</th>
+                                <th class="p-4">Driver Details</th>
+                                <th class="p-4 text-left">Signature Ride</th>
+                                <th class="p-4 text-left text-red-500">Reppin'</th>
+                                <th class="p-4 text-left text-blue-400">Specialty</th>
+                                <th class="p-4 text-orange-500 font-mono">Bounty</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-950 font-bold uppercase italic text-sm">
+                            @forelse($rivals as $index => $rival)
+                                <tr class="hover:bg-[#1c1c1c] transition-colors border-b border-gray-900/50 {{ Auth::id() === $rival->id ? 'bg-red-950/20 border-l-4 border-l-red-600' : '' }}">
+                                    <td class="p-4 text-center font-black text-lg text-gray-400">#{{ $index + 1 }}</td>
+                                    <td class="p-4 flex items-center gap-4">
+                                        <img src="{{ asset('images/avatars/' . ($rival->avatar ?? 'nfsmw.jpg')) }}" 
+                                             onerror="this.src='{{ asset('images/avatars/nfsmw.jpg') }}'"
+                                             class="w-10 h-10 border border-gray-800 object-cover bg-black" alt="">
+                                        <div>
+                                            <div class="text-white font-black tracking-tight flex items-center gap-2">
+                                                {{ $rival->name }}
+                                                @if(Auth::id() === $rival->id)
+                                                    <span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 font-mono font-black tracking-widest rounded-none">YOU</span>
+                                                @endif
+                                            </div>
+                                            <div class="text-[10px] text-gray-400 tracking-tight font-black font-mono not-italic">
+                                                BLACKLIST RANK: #{{ $rival->blacklist_rank ?? '15' }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-left text-white font-black text-sm uppercase tracking-tight">
+                                        {{ $rival->signature_car ?? 'BMW M3 GTR' }}
+                                    </td>
+                                    <td class="p-4 text-left text-red-500 font-bold uppercase text-sm">
+                                        {{ $rival->territory ?? 'Rosewood' }}
+                                    </td>
+                                    <td class="p-4 text-left text-blue-400 font-bold uppercase text-sm">
+                                        {{ $rival->race_specialty ?? 'Sprint' }}
+                                    </td>
+                                    <td class="p-4 text-orange-500 font-mono font-black tracking-tighter text-base">
+                                        ${{ number_format($rival->bounty ?? 0) }}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-800">
-                                @forelse ($customers as $customer)
-                                    <tr class="hover:bg-gray-800/40 transition group">
-                                        <td class="p-4 text-center">
-                                            <div class="text-4xl font-black italic text-red-600 group-hover:scale-110 transition-transform">
-                                                {{ $customer->blacklist_rank }}
-                                            </div>
-                                        </td>
-
-                                        <td class="p-4">
-                                            <div class="text-orange-400 font-mono font-bold uppercase tracking-tighter text-lg leading-none">
-                                                {{ $customer->alias }}
-                                            </div>
-                                            <div class="text-[10px] text-gray-500 uppercase mt-1">{{ $customer->name }}</div>
-                                        </td>
-
-                                        <td class="p-4">
-                                            <span class="text-sm text-gray-300 italic font-medium">
-                                                {{ $customer->car }}
-                                            </span>
-                                        </td>
-
-                                        <td class="p-4">
-                                            <div class="text-sm font-bold text-green-500 font-mono">
-                                                ${{ number_format($customer->bounty) }}
-                                            </div>
-                                        </td>
-
-                                        <td class="p-4 text-xs font-bold uppercase tracking-tight text-gray-400">
-                                            {{ $customer->strength }}
-                                        </td>
-
-                                        <td class="p-4">
-                                            <span class="text-xs text-red-500/80 italic font-bold uppercase">
-                                                {{ $customer->territory }}
-                                            </span>
-                                        </td>
-
-                                        <td class="p-4 text-center">
-                                            <div class="flex justify-center space-x-2">
-                                                <a href="{{ route('customers.edit', $customer->id) }}" class="text-[10px] bg-gray-700 hover:bg-white hover:text-black px-2 py-1 rounded font-bold uppercase transition">
-                                                    Edit
-                                                </a>
-                                                <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" onsubmit="return confirm('Confirm take-down?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-[10px] bg-red-900/40 hover:bg-red-600 text-red-100 px-2 py-1 rounded font-bold uppercase transition">
-                                                        Delete
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="p-12 text-center text-gray-600 italic uppercase tracking-[0.5em]">
-                                            Scanning for high-heat targets... No rivals found.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="p-12 text-center text-gray-500 font-black tracking-widest text-xs uppercase animate-pulse">
+                                        SCANNING FOR HIGH-HEAT TARGETS... NO RIVALS FOUND IN COMPILER.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
             
-            <div class="mt-6 flex justify-between items-center opacity-30 px-2">
-                <span class="text-[9px] text-gray-500 uppercase tracking-widest">System Status: Connected</span>
-                <span class="text-[9px] text-gray-500 uppercase tracking-widest text-right italic">Rockport PD Database v9.52.21</span>
+            <div class="mt-12 flex items-center justify-between opacity-30">
+                <div class="h-[1px] bg-gray-700 w-1/4"></div>
+                <p class="text-[9px] text-gray-500 font-mono uppercase tracking-[0.6em] px-4 text-center">
+                    Rockport Internal Network Security Protocol v9.52.21
+                </p>
+                <div class="h-[1px] bg-gray-700 w-1/4"></div>
             </div>
         </div>
     </div>

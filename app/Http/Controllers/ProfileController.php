@@ -11,9 +11,6 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
     public function edit(Request $request): View
     {
         return view('profile.edit', [
@@ -21,17 +18,11 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-
-        // Fill the user model with validated name and email
         $user->fill($request->validated());
 
-        // Explicitly update your custom game stats
         $user->blacklist_rank = $request->blacklist_rank;
         $user->bounty = $request->bounty;
         $user->cars_owned = $request->cars_owned;
@@ -42,13 +33,37 @@ class ProfileController extends Controller
         }
 
         $user->save();
-
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
-     * Delete the user's account.
+     * Updates internal game metrics plus custom ride and reppin' territory.
      */
+  public function updateStats(Request $request): RedirectResponse
+{
+    $request->validate([
+        'blacklist_rank' => ['required', 'integer'],
+        'bounty'         => ['required', 'integer'],
+        'signature_car'  => ['required', 'string'],
+        'territory'      => ['required', 'string'],
+        'race_specialty' => ['required', 'string'],
+        'cars_owned'     => ['required', 'integer'],
+    ]);
+
+    $data = $request->only([
+        'blacklist_rank', 'bounty', 'signature_car', 'territory', 'race_specialty', 'cars_owned'
+    ]);
+
+    // GUARD: If they are NOT Rank #1, force the specialty back to 'Sprint'
+    if ($data['blacklist_rank'] != 1 && $data['race_specialty'] === 'Everything') {
+        $data['race_specialty'] = 'Sprint';
+    }
+
+    $request->user()->update($data);
+
+    return Redirect::route('dashboard')->with('status', 'stats-updated');
+}
+
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
@@ -56,9 +71,7 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
-
         Auth::logout();
-
         $user->delete();
 
         $request->session()->invalidate();

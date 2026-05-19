@@ -9,29 +9,25 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// The Dashboard (Breeze default)
+// The Dashboard (Updated to fetch dynamic data from the database)
 Route::get('/dashboard', function () {
-    $stats = [
-        'blacklist_rank' => '1',
-        'blacklist_left' => '0',
-        'bounty' => '$ 25,123,265',
-        'cars_owned' => '36',
-        'rap_sheet_rank' => '1',
-    ];
-    return view('dashboard', compact('stats'));
+    return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// 2. YOUR CUSTOMER ROUTES
-// We wrap this in 'auth' so only logged-in users can see the customers
+// 2. YOUR AUTHENTICATED ROUTES
+// We wrap this in 'auth' so only logged-in users can see these sections
 Route::middleware('auth')->group(function () {
 
-    // This single line handles index, create, store, edit, update, and destroy
-    Route::resource('customers', CustomerController::class);
+    // Dynamic Leaderboard Route (Replaces old manual resource controller)
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
 
     // Profile routes (Breeze default)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Performance Tuner parameter injector route
+    Route::patch('/dashboard/tune-stats', [ProfileController::class, 'updateStats'])->name('dashboard.tune-stats');
 });
 
 // 3. AUTH ROUTES (Leave this at the bottom)
