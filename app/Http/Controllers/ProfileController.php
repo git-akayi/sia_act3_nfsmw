@@ -39,30 +39,24 @@ class ProfileController extends Controller
     /**
      * Updates internal game metrics plus custom ride and reppin' territory.
      */
-  public function updateStats(Request $request): RedirectResponse
-{
-    $request->validate([
-        'blacklist_rank' => ['required', 'integer'],
-        'bounty'         => ['required', 'integer'],
-        'signature_car'  => ['required', 'string'],
-        'territory'      => ['required', 'string'],
-        'race_specialty' => ['required', 'string'],
-        'cars_owned'     => ['required', 'integer'],
-    ]);
+    public function updateStats(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
 
-    $data = $request->only([
-        'blacklist_rank', 'bounty', 'signature_car', 'territory', 'race_specialty', 'cars_owned'
-    ]);
+        if ($request->filled('signature_car')) {
+            $user->signature_car = $request->signature_car;
+        }
+        if ($request->filled('territory')) {
+            $user->territory = $request->territory;
+        }
+        if ($request->filled('race_specialty')) {
+            $user->race_specialty = $request->race_specialty;
+        }
 
-    // GUARD: If they are NOT Rank #1, force the specialty back to 'Sprint'
-    if ($data['blacklist_rank'] != 1 && $data['race_specialty'] === 'Everything') {
-        $data['race_specialty'] = 'Sprint';
+        $user->save();
+
+        return back()->with('success', 'PROFILE UPDATED.');
     }
-
-    $request->user()->update($data);
-
-    return Redirect::route('dashboard')->with('status', 'stats-updated');
-}
 
     public function destroy(Request $request): RedirectResponse
     {
@@ -78,5 +72,19 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function index()
+    {
+        $myGarageCars = \App\Models\GarageCar::where('user_id', Auth::id())
+                        ->with('baseCar')
+                        ->get();
+
+        $recentRaces = \App\Models\Race::where('user_id', Auth::id())
+                        ->latest()
+                        ->take(5)
+                        ->get();
+
+        return view('dashboard', compact('myGarageCars', 'recentRaces'));
     }
 }

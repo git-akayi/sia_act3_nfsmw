@@ -25,7 +25,7 @@
                         @foreach($users as $index => $driver)
                             <tr onclick="handleRowClick(this)"
                                 data-name="{{ e($driver->name) }}"
-                                data-rank="{{ $driver->blacklist_rank }}"
+                                data-rank="{{ $index + 1 }}"
                                 data-avatar="{{ asset('images/avatars/' . ($driver->avatar ?? 'nfsmw.jpg')) }}"
                                 data-reppin="{{ e($driver->territory) }}"
                                 data-garage="{{ $driver->cars_owned }}"
@@ -49,7 +49,7 @@
                                                 <span class="bg-red-600 text-[8px] px-1 py-0.5 ml-1 text-black font-black italic rounded-sm inline-block align-middle">YOU</span>
                                             @endif
                                         </span>
-                                        <span class="text-[9px] text-gray-500 uppercase font-mono tracking-tight mt-0.5 block">Blacklist Rank: #{{ $driver->blacklist_rank }}</span>
+                                        <span class="text-[9px] text-gray-500 uppercase font-mono tracking-tight mt-0.5 block">Blacklist Rank: #{{ $index + 1 }}</span>
                                     </div>
                                 </td>
                                 
@@ -121,7 +121,6 @@
     </div>
 
     <script>
-        // Global fallback listener for broken avatar links inside the table
         document.addEventListener('DOMContentLoaded', () => {
             const fallbackUrl = "{{ asset('images/avatars/nfsmw.jpg') }}";
             
@@ -131,13 +130,11 @@
                 });
             });
 
-            // Also attach it to the modal target avatar window frame
             document.getElementById('modal-avatar').addEventListener('error', function() {
                 this.src = fallbackUrl;
             });
         });
 
-        // Reads data attributes from the clicked element row safely
         function handleRowClick(rowElement) {
             const driverData = {
                 name: rowElement.getAttribute('data-name'),
@@ -156,21 +153,18 @@
             const modal = document.getElementById('driver-modal');
             const card = modal.querySelector('.max-w-sm');
 
-            // Populate Modal Core Info fields
             document.getElementById('modal-top-alias').innerText = driver.name;
             document.getElementById('modal-alias').innerText = driver.name;
             document.getElementById('modal-rank').innerText = '#' + driver.rank;
             document.getElementById('modal-avatar').src = driver.avatar;
             
-            // Populate Streamlined Metric Sheet Rows
-            document.getElementById('modal-stat-rank').innerText = '0' + driver.rank;
+            document.getElementById('modal-stat-rank').innerText = '#' + driver.rank;
             document.getElementById('modal-stat-bounty').innerText = driver.bounty;
             document.getElementById('modal-stat-ride').innerText = driver.ride;
             document.getElementById('modal-stat-reppin').innerText = driver.reppin;
             document.getElementById('modal-stat-specialty').innerText = driver.specialty;
             document.getElementById('modal-stat-garage').innerText = driver.garage;
 
-            // Show Modal with smooth animation transitions
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');

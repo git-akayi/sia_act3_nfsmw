@@ -60,12 +60,9 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true
-<<<<<<< HEAD
         },
         "audit": {
             "block-insecure": false
-=======
->>>>>>> 9eb49a5d31a45d4102f15ba687f8b48625505da8
         }
     },
     "minimum-stability": "stable",
