@@ -29,7 +29,8 @@ class User extends Authenticatable
         'rivals_left',
         'signature_car',
         'territory',
-        'race_specialty'
+        'race_specialty',
+        'blacklist_beaten'
     ];
 
     /**
@@ -49,6 +50,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        
+        'blacklist_beaten'  => 'array',
     ];
 
     public function garageCars()

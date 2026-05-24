@@ -52,6 +52,8 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/profile/update-stats', [ProfileController::class, 'updateStats'])->name('profile.updateStats');
 
+    Route::post('/race/blacklist', [RaceController::class, 'blacklistRace'])->name('race.blacklist');
+
     Route::middleware('auth')->group(function () {
         Route::get('/race', [RaceController::class, 'index'])->name('race.index');
         Route::post('/race', [RaceController::class, 'race'])->name('race.run');

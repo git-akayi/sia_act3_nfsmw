@@ -35,5 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/garage/{id}/tune', [TuningController::class, 'apiTune']);
     Route::delete('/garage/{id}/sell', [TuningController::class, 'apiSell']);
     Route::get('/my-garage', [TuningController::class, 'apiGarage']);
-    
+
+    Route::post('/race/blacklist', [RaceController::class, 'apiBlacklistRace']);
+    Route::get('/race/blacklist/status', [RaceController::class, 'apiBlacklistStatus']);
 });

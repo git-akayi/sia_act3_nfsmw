@@ -30,7 +30,7 @@
                                 data-reppin="{{ e($driver->territory) }}"
                                 data-garage="{{ $driver->cars_owned }}"
                                 data-bounty="${{ number_format($driver->bounty) }}"
-                                data-ride="{{ e($driver->signature_ride ?? 'N/A') }}"
+                                data-ride="{{ e($driver->signature_car ?? 'N/A') }}"
                                 data-specialty="{{ e($driver->race_specialty ?? 'N/A') }}"
                                 class="hover:bg-[#1a1a1a]/60 cursor-pointer transition-colors group">
                                 

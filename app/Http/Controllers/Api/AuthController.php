@@ -9,38 +9,45 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
-    {
-        $user = User::where('email', $request->email)->first();
+   public function login(Request $request)
+{
+    $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        $token = $user->createToken('mobile-app')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user'  => $user
-        ]);
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
+
+    $token = $user->createToken('mobile-app')->plainTextToken;
+
+    return response()->json([
+        'token' => $token,
+        'user'  => $user,
+    ]);
+}
 
     public function register(Request $request)
-    {
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+{
+    $avatarChosen = $request->avatar ?? 'nfsmw.jpg';
 
-        $token = $user->createToken('mobile-app')->plainTextToken;
+    $user = User::create([
+        'name'           => $request->name,
+        'email'          => $request->email,
+        'password'       => Hash::make($request->password),
+        'avatar'         => $avatarChosen,
+        'blacklist_rank' => 15,
+        'bounty'         => 0,
+        'cars_owned'     => 0,
+        'rivals_left'    => 15,
+        'cash'           => 15000,
+    ]);
 
-        return response()->json([
-            'token' => $token,
-            'user'  => $user
-        ]);
-    }
+    $token = $user->createToken('mobile-app')->plainTextToken;
 
+    return response()->json([
+        'token' => $token,
+        'user'  => $user,
+    ]);
+}
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

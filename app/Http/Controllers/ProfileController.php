@@ -24,9 +24,9 @@ class ProfileController extends Controller
         $user->fill($request->validated());
 
         $user->blacklist_rank = $request->blacklist_rank;
-        $user->bounty = $request->bounty;
-        $user->cars_owned = $request->cars_owned;
-        $user->rivals_left = $request->rivals_left;
+        $user->bounty         = $request->bounty;
+        $user->cars_owned     = $request->cars_owned;
+        $user->rivals_left    = $request->rivals_left;
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -40,15 +40,9 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        if ($request->filled('signature_car')) {
-            $user->signature_car = $request->signature_car;
-        }
-        if ($request->filled('territory')) {
-            $user->territory = $request->territory;
-        }
-        if ($request->filled('race_specialty')) {
-            $user->race_specialty = $request->race_specialty;
-        }
+        if ($request->filled('signature_car'))  $user->signature_car  = $request->signature_car;
+        if ($request->filled('territory'))       $user->territory      = $request->territory;
+        if ($request->filled('race_specialty'))  $user->race_specialty = $request->race_specialty;
 
         $user->save();
 
@@ -71,26 +65,47 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
-    // Web dashboard view (for browser)
+    // ── Web dashboard ─────────────────────────────────────────────────────
+
     public function index()
     {
-        $myGarageCars = \App\Models\GarageCar::where('user_id', Auth::id())
-                        ->with('baseCar')
-                        ->get();
+        $user = Auth::user();
 
-        $recentRaces = \App\Models\Race::where('user_id', Auth::id())
-                        ->latest()
-                        ->take(5)
-                        ->get();
+        // ✅ Auto-correct rank in case it's out of sync with bounty + beaten bosses
+        $beaten      = $user->blacklist_beaten ?? [];
+        $correctRank = RaceController::getRankFromBounty($user->bounty, $beaten);
+        if ($user->blacklist_rank !== $correctRank) {
+            $user->blacklist_rank = $correctRank;
+            $user->save();
+            $user->refresh();
+        }
+
+        $myGarageCars = \App\Models\GarageCar::where('user_id', $user->id)
+                            ->with('baseCar')
+                            ->get();
+
+        $recentRaces = \App\Models\Race::where('user_id', $user->id)
+                            ->latest()
+                            ->take(5)
+                            ->get();
 
         return view('dashboard', compact('myGarageCars', 'recentRaces'));
     }
 
-    // ── API endpoints (return JSON for Flutter) ───────────────────────────
+    // ── API endpoints ─────────────────────────────────────────────────────
 
     public function apiDashboard(Request $request)
     {
         $user = $request->user();
+
+        // ✅ Auto-correct rank for Flutter too
+        $beaten      = $user->blacklist_beaten ?? [];
+        $correctRank = RaceController::getRankFromBounty($user->bounty, $beaten);
+        if ($user->blacklist_rank !== $correctRank) {
+            $user->blacklist_rank = $correctRank;
+            $user->save();
+            $user->refresh();
+        }
 
         $garage = \App\Models\GarageCar::where('user_id', $user->id)
                     ->with('baseCar')
@@ -116,15 +131,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($request->filled('signature_car')) {
-            $user->signature_car = $request->signature_car;
-        }
-        if ($request->filled('territory')) {
-            $user->territory = $request->territory;
-        }
-        if ($request->filled('race_specialty')) {
-            $user->race_specialty = $request->race_specialty;
-        }
+        if ($request->filled('signature_car'))  $user->signature_car  = $request->signature_car;
+        if ($request->filled('territory'))       $user->territory      = $request->territory;
+        if ($request->filled('race_specialty'))  $user->race_specialty = $request->race_specialty;
 
         $user->save();
 

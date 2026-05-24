@@ -58,16 +58,33 @@
                 'BMW M3 GTR'                       => 'NFSMW_BMW_M3GTR_Stock_F.webp',
             ];
 
-            // Rank progress calculation
             $thresholds  = \App\Http\Controllers\RaceController::getRankThresholds();
-            $currentRank = Auth::user()->blacklist_rank;
-            $nextRank    = $currentRank - 1;
-            $currentMin  = $thresholds[$currentRank] ?? 0;
-            $nextMin     = $thresholds[$nextRank] ?? null;
-            $userBounty  = Auth::user()->bounty;
-            $progress    = $nextMin
-                ? min(100, (int)(($userBounty - $currentMin) / ($nextMin - $currentMin) * 100))
-                : 100;
+            $user        = Auth::user();
+            $currentRank = $user->blacklist_rank;
+            $userBounty  = $user->bounty;
+
+            // ✅ Next rank the user is working TOWARD
+            // If blacklist race is available, show progress toward beating the boss
+            // Otherwise show progress toward next bounty threshold
+            $nextRank   = $currentRank - 1;
+            $currentMin = $thresholds[$currentRank] ?? 0;
+            $nextMin    = $thresholds[$nextRank] ?? null;
+
+            // Check if boss race is available (bounty already exceeds next threshold)
+            $blacklistBeaten    = $user->blacklist_beaten ?? [];
+            $bossRaceAvailable  = \App\Http\Controllers\RaceController::getAvailableBlacklistRace($user);
+
+            if ($bossRaceAvailable !== null) {
+                // Bounty is already past the threshold — bar is full, waiting for boss race
+                $progress     = 100;
+                $progressLabel = '✅ BOUNTY MET — BEAT THE BLACKLIST BOSS TO RANK UP';
+            } elseif ($nextMin) {
+                $progress      = min(100, (int)(($userBounty - $currentMin) / ($nextMin - $currentMin) * 100));
+                $progressLabel = null;
+            } else {
+                $progress      = 100;
+                $progressLabel = null;
+            }
             @endphp
 
             {{-- RANK UP FLASH --}}
@@ -81,6 +98,30 @@
                             to <span class="text-yellow-400 font-bold">#{{ session('new_rank') }}</span>
                         </p>
                     </div>
+                </div>
+            @endif
+
+            {{-- BOSS RACE ALERT BANNER --}}
+            @if($bossRaceAvailable)
+                <div class="mb-6 border-l-4 border-red-600 bg-red-900/10 p-4 flex items-center justify-between gap-4 shadow-2xl">
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                        </div>
+                        <div>
+                            <p class="text-red-500 font-black uppercase tracking-widest text-sm italic">
+                                ⚠️ BLACKLIST BOSS RACE AVAILABLE — RANK #{{ $bossRaceAvailable }}
+                            </p>
+                            <p class="text-gray-500 font-mono text-xs uppercase tracking-wider mt-0.5">
+                                Your bounty qualifies. Head to Race Control to challenge the boss.
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{{ route('race.index') }}"
+                        class="bg-red-700 hover:bg-red-600 text-white font-black uppercase px-4 py-2 text-xs italic tracking-wider transition-all whitespace-nowrap">
+                        GO TO RACE →
+                    </a>
                 </div>
             @endif
 
@@ -98,53 +139,57 @@
                 <div class="flex-shrink-0">
                     <div class="relative w-40 h-40 border-2 border-red-600 rounded-md overflow-hidden shadow-[0_0_15px_rgba(220,38,38,0.3)] bg-black">
                         <img class="w-full h-full object-cover"
-                            src="{{ asset('images/avatars/' . (Auth::user()->avatar ?? 'nfsmw.jpg')) }}"
+                            src="{{ asset('images/avatars/' . ($user->avatar ?? 'nfsmw.jpg')) }}"
                             onerror="this.onerror=null; this.src='/images/avatars/nfsmw.jpg';"
-                            alt="{{ Auth::user()->name }}">
+                            alt="{{ $user->name }}">
                     </div>
                 </div>
 
                 <div class="flex-grow flex flex-col justify-between w-full">
                     <div class="border-b border-gray-900 pb-3 mb-4 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 text-center sm:text-left">
                         <h2 class="text-3xl font-black text-white uppercase tracking-tight italic">
-                            ALIAS: <span class="text-red-600">{{ Auth::user()->name }}</span>
+                            ALIAS: <span class="text-red-600">{{ $user->name }}</span>
                         </h2>
                         <div class="text-xl font-black text-red-600 uppercase tracking-tight italic">
-                            RANK <span class="text-white font-mono">#{{ Auth::user()->blacklist_rank }}</span>
+                            RANK <span class="text-white font-mono">#{{ $user->blacklist_rank }}</span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <div class="bg-[#222222]/40 p-3 border border-gray-900">
                             <p class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Bounty</p>
-                            <p class="text-xl font-black text-orange-500 font-mono tracking-tighter">${{ number_format(Auth::user()->bounty) }}</p>
+                            <p class="text-xl font-black text-orange-500 font-mono tracking-tighter">${{ number_format($user->bounty) }}</p>
                         </div>
                         <div class="bg-[#222222]/40 p-3 border border-gray-900">
                             <p class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Ride</p>
-                            <p class="text-sm font-black text-white truncate mt-1">{{ Auth::user()->signature_car }}</p>
+                            <p class="text-sm font-black text-white truncate mt-1">{{ $user->signature_car }}</p>
                         </div>
                         <div class="bg-[#222222]/40 p-3 border border-gray-900">
                             <p class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Area</p>
-                            <p class="text-sm font-black text-red-600 truncate mt-1">{{ Auth::user()->territory }}</p>
+                            <p class="text-sm font-black text-red-600 truncate mt-1">{{ $user->territory }}</p>
                         </div>
                         <div class="bg-[#222222]/40 p-3 border border-gray-900">
                             <p class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Specialty</p>
-                            <p class="text-sm font-black text-white truncate mt-1">{{ Auth::user()->race_specialty }}</p>
+                            <p class="text-sm font-black text-white truncate mt-1">{{ $user->race_specialty }}</p>
                         </div>
                     </div>
 
-                    {{-- Rank Progress Bar --}}
+                    {{-- ✅ Rank Progress Bar --}}
                     <div class="mt-4">
                         <div class="flex justify-between text-[9px] font-mono uppercase text-gray-500 mb-1">
                             <span>Rank #{{ $currentRank }}</span>
-                            @if($nextMin)
+                            @if($bossRaceAvailable)
+                                <span class="text-red-500 font-black animate-pulse">
+                                    ⚠️ BEAT BLACKLIST #{{ $bossRaceAvailable }} TO RANK UP
+                                </span>
+                            @elseif($nextMin)
                                 <span>Next: Rank #{{ $nextRank }} @ ${{ number_format($nextMin) }} bounty</span>
                             @else
                                 <span class="text-yellow-400 font-black">// #1 MOST WANTED — MAX RANK</span>
                             @endif
                         </div>
                         <div class="w-full bg-gray-900 h-1.5 overflow-hidden">
-                            <div class="h-full bg-[#e32b2b] transition-all duration-700"
+                            <div class="h-full transition-all duration-700 {{ $bossRaceAvailable ? 'bg-orange-500 animate-pulse' : 'bg-[#e32b2b]' }}"
                                  style="width: {{ $progress }}%"></div>
                         </div>
                         <div class="flex justify-between text-[9px] font-mono text-gray-700 mt-0.5">
@@ -155,6 +200,7 @@
                 </div>
             </div>
 
+            {{-- ECU TUNER PANEL --}}
             <div id="tuner-panel" class="max-h-0 overflow-hidden transition-all duration-500 mt-0 opacity-0">
                 <div class="bg-[#181818] border border-gray-900 p-6 shadow-2xl mt-8">
                     <form method="POST" action="{{ route('profile.updateStats') }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -164,111 +210,125 @@
                             <label class="block text-[10px] text-gray-500 uppercase font-black tracking-wider mb-1">Ride</label>
                             <select name="signature_car" class="w-full bg-black border-gray-800 text-white p-2 text-sm focus:border-red-600 focus:ring-0">
                                 @forelse($myGarageCars as $myCar)
-                                <option value="{{ $myCar->baseCar->make_model }}"
-                                    {{ Auth::user()->signature_car == $myCar->baseCar->make_model ? 'selected' : '' }}>
-                                    {{ $myCar->baseCar->make_model }}
-                                </option>
+                                    <option value="{{ $myCar->baseCar->make_model }}"
+                                        {{ $user->signature_car == $myCar->baseCar->make_model ? 'selected' : '' }}>
+                                        {{ $myCar->baseCar->make_model }}
+                                    </option>
                                 @empty
-                                <option disabled>No cars in garage</option>
+                                    <option disabled>No cars in garage</option>
                                 @endforelse
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-[10px] text-gray-500 uppercase font-black tracking-wider mb-1">Area</label>
-                            <input type="text" name="territory" value="{{ Auth::user()->territory }}" class="w-full bg-black border-gray-800 text-red-500 p-2 text-sm focus:border-red-600 focus:ring-0">
+                            <input type="text" name="territory" value="{{ $user->territory }}"
+                                class="w-full bg-black border-gray-800 text-red-500 p-2 text-sm focus:border-red-600 focus:ring-0">
                         </div>
+
                         <div>
                             <label class="block text-[10px] text-gray-500 uppercase font-black tracking-wider mb-1">Specialty</label>
                             <select name="race_specialty" class="w-full bg-black border-gray-800 text-white p-2 text-sm focus:border-red-600 focus:ring-0">
                                 @foreach(['Sprint', 'Circuit', 'Drag', 'Drift', 'Speedtrap', 'Knockout', 'Tollbooth'] as $type)
-                                <option value="{{ $type }}" {{ Auth::user()->race_specialty == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                    <option value="{{ $type }}" {{ $user->race_specialty == $type ? 'selected' : '' }}>
+                                        {{ $type }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <input type="hidden" name="blacklist_rank" value="{{ Auth::user()->blacklist_rank }}">
-                        <input type="hidden" name="bounty" value="{{ Auth::user()->bounty }}">
-                        <input type="hidden" name="cars_owned" value="{{ Auth::user()->cars_owned }}">
+                        <input type="hidden" name="blacklist_rank" value="{{ $user->blacklist_rank }}">
+                        <input type="hidden" name="bounty" value="{{ $user->bounty }}">
+                        <input type="hidden" name="cars_owned" value="{{ $user->cars_owned }}">
 
                         <div class="md:col-span-3 flex justify-end mt-4">
-                            <button type="submit" class="bg-red-700 text-white text-xs font-black uppercase px-6 py-3 italic hover:bg-red-600 transition tracking-wider">Commit Changes</button>
+                            <button type="submit"
+                                class="bg-red-700 text-white text-xs font-black uppercase px-6 py-3 italic hover:bg-red-600 transition tracking-wider">
+                                Commit Changes
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
 
+            {{-- GARAGE --}}
             <div class="mt-8">
                 <h3 class="font-black text-xl text-white uppercase tracking-wider italic mb-4 text-[#e32b2b]">
                     🏎️ Your Personal Garage
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @forelse($myGarageCars as $myCar)
-                    @php
-                    $imgFile = $imageMap[$myCar->baseCar->make_model] ?? null;
-                    $imgPath = $imgFile ? asset('images/cars/' . $imgFile) : null;
-                    @endphp
-                    <div class="bg-[#151515]/80 border border-gray-900 rounded-none relative overflow-hidden shadow-2xl flex flex-col">
+                        @php
+                            $imgFile = $imageMap[$myCar->baseCar->make_model] ?? null;
+                            $imgPath = $imgFile ? asset('images/cars/' . $imgFile) : null;
+                        @endphp
+                        <div class="bg-[#151515]/80 border border-gray-900 rounded-none relative overflow-hidden shadow-2xl flex flex-col">
 
-                        {{-- Condition Badge --}}
-                        <div class="absolute top-0 right-0 z-10 px-3 py-1 text-xs font-mono font-bold uppercase {{ $myCar->mechanical_efficiency > 80 ? 'bg-green-600 text-white' : 'bg-amber-600 text-black' }}">
-                            Condition: {{ $myCar->mechanical_efficiency }}%
-                        </div>
-
-                        {{-- Car Image --}}
-                        <div class="w-full h-40 bg-black overflow-hidden">
-                            @if($imgPath)
-                            <img src="{{ $imgPath }}"
-                                alt="{{ $myCar->baseCar->make_model }}"
-                                class="w-full h-full object-cover"
-                                onerror="this.onerror=null; this.style.display='none'">
-                            @endif
-                        </div>
-
-                        <div class="p-6">
-                            <h4 class="text-lg font-bold text-white uppercase italic tracking-wide">
-                                {{ $myCar->baseCar->make_model }}
-                            </h4>
-                            @if($myCar->baseCar->engine_type)
-                            <div class="my-3 bg-black/60 px-3 py-2 border-l-2 border-[#e32b2b]">
-                                <span class="text-gray-500 uppercase text-[9px] tracking-widest font-black">Engine</span>
-                                <p class="text-white font-black text-sm uppercase">{{ $myCar->baseCar->engine_type }}</p>
+                            {{-- Condition Badge --}}
+                            <div class="absolute top-0 right-0 z-10 px-3 py-1 text-xs font-mono font-bold uppercase {{ $myCar->mechanical_efficiency > 80 ? 'bg-green-600 text-white' : 'bg-amber-600 text-black' }}">
+                                Condition: {{ $myCar->mechanical_efficiency }}%
                             </div>
-                            @endif
 
-                            <div class="grid grid-cols-2 gap-px bg-gray-900 my-4 font-mono text-xs">
-                                <div class="bg-black p-2">
-                                    <span class="block text-gray-500 mb-1">POWER</span>
-                                    <span class="text-white font-bold text-sm">{{ $myCar->current_hp }} HP</span>
-                                </div>
-                                <div class="bg-black p-2">
-                                    <span class="block text-gray-500 mb-1">TORQUE</span>
-                                    <span class="text-white font-bold text-sm">{{ $myCar->current_torque }} lb-ft</span>
-                                </div>
-                                <div class="bg-black p-2">
-                                    <span class="block text-gray-500 mb-1">TOP SPEED</span>
-                                    <span class="text-white font-bold text-sm">{{ $myCar->baseCar->top_speed ?? '—' }} mph</span>
-                                </div>
-                                <div class="bg-black p-2">
-                                    <span class="block text-gray-500 mb-1">VALUATION</span>
-                                    <span class="text-green-500 font-bold text-sm">${{ number_format($myCar->calculated_valuation) }}</span>
-                                </div>
-                                <div class="bg-black p-2 col-span-2">
-                                    <span class="block text-gray-500 mb-1">TRANSMISSION</span>
-                                    <span class="text-white font-bold text-sm">{{ $myCar->baseCar->transmission ?? '—' }}</span>
-                                </div>
+                            {{-- Car Image --}}
+                            <div class="w-full h-40 bg-black overflow-hidden">
+                                @if($imgPath)
+                                    <img src="{{ $imgPath }}"
+                                        alt="{{ $myCar->baseCar->make_model }}"
+                                        class="w-full h-full object-cover"
+                                        onerror="this.onerror=null; this.style.display='none'">
+                                @endif
                             </div>
-                            <div class="flex justify-end mt-2">
-                                <a href="{{ route('tuning.show', $myCar->id) }}" class="block text-center bg-zinc-950 hover:bg-zinc-800 border border-gray-800 text-white font-mono uppercase text-xs px-4 py-2 italic tracking-wider transition-all mt-4">
-                                    OPEN TUNE PROFILE
-                                </a>
+
+                            <div class="p-6">
+                                <h4 class="text-lg font-bold text-white uppercase italic tracking-wide">
+                                    {{ $myCar->baseCar->make_model }}
+                                </h4>
+                                @if($myCar->baseCar->engine_type)
+                                    <div class="my-3 bg-black/60 px-3 py-2 border-l-2 border-[#e32b2b]">
+                                        <span class="text-gray-500 uppercase text-[9px] tracking-widest font-black">Engine</span>
+                                        <p class="text-white font-black text-sm uppercase">{{ $myCar->baseCar->engine_type }}</p>
+                                    </div>
+                                @endif
+
+                                <div class="grid grid-cols-2 gap-px bg-gray-900 my-4 font-mono text-xs">
+                                    <div class="bg-black p-2">
+                                        <span class="block text-gray-500 mb-1">POWER</span>
+                                        <span class="text-white font-bold text-sm">{{ $myCar->current_hp }} HP</span>
+                                    </div>
+                                    <div class="bg-black p-2">
+                                        <span class="block text-gray-500 mb-1">TORQUE</span>
+                                        <span class="text-white font-bold text-sm">{{ $myCar->current_torque }} lb-ft</span>
+                                    </div>
+                                    <div class="bg-black p-2">
+                                        <span class="block text-gray-500 mb-1">TOP SPEED</span>
+                                        <span class="text-white font-bold text-sm">{{ $myCar->baseCar->top_speed ?? '—' }} mph</span>
+                                    </div>
+                                    <div class="bg-black p-2">
+                                        <span class="block text-gray-500 mb-1">VALUATION</span>
+                                        <span class="text-green-500 font-bold text-sm">${{ number_format($myCar->calculated_valuation) }}</span>
+                                    </div>
+                                    <div class="bg-black p-2 col-span-2">
+                                        <span class="block text-gray-500 mb-1">TRANSMISSION</span>
+                                        <span class="text-white font-bold text-sm">{{ $myCar->baseCar->transmission ?? '—' }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end mt-2">
+                                    <a href="{{ route('tuning.show', $myCar->id) }}"
+                                        class="block text-center bg-zinc-950 hover:bg-zinc-800 border border-gray-800 text-white font-mono uppercase text-xs px-4 py-2 italic tracking-wider transition-all mt-4">
+                                        OPEN TUNE PROFILE
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     @empty
-                    <div class="col-span-2 border border-dashed border-gray-800 p-8 text-center text-gray-500 font-mono uppercase tracking-widest bg-black/40">
-                        Your garage is empty. Head down to the <a href="{{ route('marketplace.index') }}" class="text-[#e32b2b] underline font-bold hover:text-red-500 transition-colors">Impound Lot</a> to buy your first project car!
-                    </div>
+                        <div class="col-span-2 border border-dashed border-gray-800 p-8 text-center text-gray-500 font-mono uppercase tracking-widest bg-black/40">
+                            Your garage is empty. Head down to the
+                            <a href="{{ route('marketplace.index') }}"
+                                class="text-[#e32b2b] underline font-bold hover:text-red-500 transition-colors">
+                                Impound Lot
+                            </a>
+                            to buy your first project car!
+                        </div>
                     @endforelse
                 </div>
             </div>
@@ -277,16 +337,16 @@
 
     <script>
         function toggleTunerPanel() {
-            const panel = document.getElementById('tuner-panel');
+            const panel   = document.getElementById('tuner-panel');
             const chevron = document.getElementById('tuner-chevron');
             if (panel.style.maxHeight === '0px' || !panel.style.maxHeight || panel.style.maxHeight === '0') {
                 panel.style.maxHeight = panel.scrollHeight + "px";
-                panel.style.opacity = "1";
+                panel.style.opacity   = "1";
                 panel.style.marginTop = "2rem";
                 chevron.classList.add('rotate-180');
             } else {
                 panel.style.maxHeight = "0";
-                panel.style.opacity = "0";
+                panel.style.opacity   = "0";
                 panel.style.marginTop = "0";
                 chevron.classList.remove('rotate-180');
             }

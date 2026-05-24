@@ -5,8 +5,8 @@
                 {{ __('IMPOUND LOT / BLACK MARKET') }}
             </h2>
             <div class="bg-black/40 border border-[#e32b2b]/30 px-4 py-2 rounded">
-                <span class="text-gray-400 uppercase text-xs font-bold tracking-wider">Available Balance:</span>
-                <span class="text-green-400 font-mono font-bold text-lg ml-2">${{ number_format(Auth::user()->bank_cash) }}</span>
+                <span class="text-gray-400 uppercase text-xs font-bold tracking-wider">Current Bounty:</span>
+                <span class="text-orange-400 font-mono font-bold text-lg ml-2">${{ number_format(Auth::user()->bounty) }}</span>
             </div>
         </div>
     </x-slot>
