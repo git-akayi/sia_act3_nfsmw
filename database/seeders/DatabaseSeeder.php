@@ -57,8 +57,8 @@ class DatabaseSeeder extends Seeder
             ['Mercedes-Benz SLR McLaren',        625, 630, 1265000, 'S', '5.4L V8 S/C',    208, '5-speed Auto',    1768],
 
             // --- Track Specials & Iconic Legend ---
-            ['Chevrolet Corvette C6.R',          685, 700, 5500000, 'S', '7.0L V8',        199, '6-speed Sequential', 1250],
-            ['BMW M3 GTR',                       700, 730, 1050000, 'S', '4.0L V8',        200, '6-speed Sequential', 1430],
+            ['Chevrolet Corvette C6.R',          750, 780, 7500000, 'S', '7.0L V8',        199, '6-speed Sequential', 1250],
+            ['BMW M3 GTR',                       800, 830, 12050000, 'S', '4.0L V8',        200, '6-speed Sequential', 1430],
         ];
 
         foreach ($roster as $car) {
