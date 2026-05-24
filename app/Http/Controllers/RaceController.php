@@ -40,6 +40,8 @@ class RaceController extends Controller
         return 15;
     }
 
+    // ── Web view ─────────────────────────────────────────────────────────────
+
     public function index()
     {
         $user = Auth::user();
@@ -52,8 +54,10 @@ class RaceController extends Controller
             ->with('baseCar')
             ->first();
 
-        return view('race.index', compact('user', 'recentRaces', 'myCar'));
+        return view('races.index', compact('user', 'recentRaces', 'myCar'));
     }
+
+    // ── Web POST (Blade form) ─────────────────────────────────────────────────
 
     public function race(Request $request)
     {
@@ -61,23 +65,74 @@ class RaceController extends Controller
             'race_type' => 'required|in:Sprint,Circuit,Drag,Drift,Speedtrap,Knockout,Tollbooth',
         ]);
 
-        $user = Auth::user();
+        $payload = $this->runRace($request->race_type, Auth::user());
 
+        if (isset($payload['error'])) {
+            return back()->with('error', $payload['error']);
+        }
+
+        return back()->with($payload);
+    }
+
+    // ── API POST (Flutter) ────────────────────────────────────────────────────
+
+    public function apiRace(Request $request)
+    {
+        $request->validate([
+            'race_type' => 'required|in:Sprint,Circuit,Drag,Drift,Speedtrap,Knockout,Tollbooth',
+        ]);
+
+        $payload = $this->runRace($request->race_type, $request->user());
+
+        if (isset($payload['error'])) {
+            return response()->json(['success' => false, 'message' => $payload['error']], 422);
+        }
+
+        return response()->json([
+            'success'       => true,
+            'result'        => $payload['race_result'],
+            'race_type'     => $payload['race_type'],
+            'your_score'    => $payload['performance'],
+            'opponent'      => $payload['opponent'],
+            'cash_earned'   => $payload['cash_earned'],
+            'bounty_change' => $payload['bounty_change'],
+            'ranked_up'     => $payload['ranked_up'],
+            'new_rank'      => $payload['new_rank'],
+            'old_rank'      => $payload['old_rank'],
+        ]);
+    }
+
+    // ── API GET: recent race history (Flutter) ────────────────────────────────
+
+    public function apiHistory(Request $request)
+    {
+        $races = Race::where('user_id', $request->user()->id)
+            ->latest()
+            ->take(10)
+            ->get(['race_type', 'result', 'cash_earned', 'bounty_change', 'created_at']);
+
+        return response()->json($races);
+    }
+
+    // ── Shared race logic ─────────────────────────────────────────────────────
+
+    private function runRace(string $raceType, $user): array
+    {
         $myCar = GarageCar::where('user_id', $user->id)->first();
 
         if (!$myCar) {
-            return back()->with('error', 'NO VEHICLE FOUND. ACQUIRE A CAR FIRST.');
+            return ['error' => 'NO VEHICLE FOUND. ACQUIRE A CAR FIRST.'];
         }
 
-        // Calculate performance score
+        // Performance score
         $performance = $myCar->current_hp + ($myCar->current_torque * 0.5);
 
-        // Specialty bonus — 20% boost if race type matches profile specialty
-        if (strtolower($user->race_specialty) === strtolower($request->race_type)) {
+        // Specialty bonus
+        if (strtolower($user->race_specialty ?? '') === strtolower($raceType)) {
             $performance *= 1.2;
         }
 
-        // Race type bounty multipliers
+        // Bounty multipliers per race type
         $bountyMultipliers = [
             'Sprint'    => 1.0,
             'Circuit'   => 1.3,
@@ -87,40 +142,44 @@ class RaceController extends Controller
             'Knockout'  => 1.8,
             'Tollbooth' => 1.1,
         ];
-        $multiplier = $bountyMultipliers[$request->race_type] ?? 1.0;
+        $multiplier = $bountyMultipliers[$raceType] ?? 1.0;
 
-        // Generate random opponent difficulty
+        // Random opponent
         $opponentDifficulty = rand(100, 600);
 
-        // Determine result
-        $result      = $performance > $opponentDifficulty ? 'WIN' : 'LOSS';
-        $cashEarned  = 0;
+        $result       = $performance > $opponentDifficulty ? 'WIN' : 'LOSS';
+        $cashEarned   = 0;
         $bountyChange = 0;
-
-        $oldRank = $user->blacklist_rank;
+        $oldRank      = $user->blacklist_rank;
 
         if ($result === 'WIN') {
-            $cashEarned   = rand(1000, 5000);
-            $bountyChange = (int) (rand(300, 1500) * $multiplier);
-            $user->bank_cash += $cashEarned;
-            $user->bounty    += $bountyChange;
+            $rankMultiplier = match(true) {
+                $user->blacklist_rank <= 3  => 4.0,
+                $user->blacklist_rank <= 6  => 3.0,
+                $user->blacklist_rank <= 9  => 2.0,
+                $user->blacklist_rank <= 12 => 1.5,
+                default                     => 1.0,
+            };
+            $cashEarned   = (int)(rand(1000, 5000) * $rankMultiplier);
+            $bountyChange = (int)(rand(900, 4500) * $multiplier);
+            $user->cash   += $cashEarned;
+            $user->bounty += $bountyChange;
         } else {
-            $bountyChange    = -(int) (rand(100, 400) * $multiplier);
-            $user->bounty    = max(0, $user->bounty + $bountyChange);
+            $bountyChange = -(int)(rand(400, 1000) * $multiplier);
+            $user->bounty = max(0, $user->bounty + $bountyChange);
         }
 
-        // Auto-update blacklist rank based on new bounty
-        $newRank = self::getRankFromBounty($user->bounty);
+        // Auto-update blacklist rank
+        $newRank              = self::getRankFromBounty($user->bounty);
         $user->blacklist_rank = $newRank;
         $user->save();
 
-        // Detect rank-up
         $rankedUp = $newRank < $oldRank;
 
-        // Log the race
+        // Log race
         Race::create([
             'user_id'             => $user->id,
-            'race_type'           => $request->race_type,
+            'race_type'           => $raceType,
             'performance_score'   => (int) $performance,
             'opponent_difficulty' => $opponentDifficulty,
             'result'              => $result,
@@ -128,16 +187,16 @@ class RaceController extends Controller
             'bounty_change'       => $bountyChange,
         ]);
 
-        return back()->with([
+        return [
             'race_result'   => $result,
             'cash_earned'   => $cashEarned,
             'bounty_change' => $bountyChange,
             'performance'   => (int) $performance,
             'opponent'      => $opponentDifficulty,
-            'race_type'     => $request->race_type,
+            'race_type'     => $raceType,
             'ranked_up'     => $rankedUp,
             'new_rank'      => $newRank,
             'old_rank'      => $oldRank,
-        ]);
+        ];
     }
 }

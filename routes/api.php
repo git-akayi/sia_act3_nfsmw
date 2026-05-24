@@ -4,26 +4,36 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\LeaderboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RaceController;
+use App\Http\Controllers\MarketplaceController;
+use App\Http\Controllers\TuningController;
 
-// ✅ Public
-Route::post('/login', [AuthController::class, 'login']);
+// Public
+Route::post('/login',    [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// ✅ Protected
+// Protected
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Endpoint 3 — Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Endpoint 4 — Get full leaderboard (all users sorted by bounty)
-    Route::get('/leaderboard', [LeaderboardController::class, 'index']);
-
-    // Endpoint 5 — Get my own profile/stats
-    Route::get('/my-profile', [LeaderboardController::class, 'myProfile']);
-
-    // Endpoint 6 — Update my own stats (bounty, ride, area, specialty)
-    Route::put('/my-profile', [LeaderboardController::class, 'updateProfile']);
-
-    // Endpoint 7 — Get single user by rank
+    Route::get('/leaderboard',      [LeaderboardController::class, 'index']);
     Route::get('/leaderboard/{id}', [LeaderboardController::class, 'show']);
+
+    Route::get('/my-profile', [LeaderboardController::class, 'myProfile']);
+    Route::put('/my-profile', [ProfileController::class, 'apiUpdateProfile']);
+
+    Route::get('/dashboard', [ProfileController::class, 'apiDashboard']);
+
+    Route::post('/race',        [RaceController::class, 'apiRace']);
+    Route::get('/race/history', [RaceController::class, 'apiHistory']);
+
+    Route::get('/marketplace',           [MarketplaceController::class, 'index']);
+    Route::post('/marketplace/buy/{id}', [MarketplaceController::class, 'buy']);
+
+    Route::post('/garage/{id}/tune', [TuningController::class, 'apiTune']);
+    Route::delete('/garage/{id}/sell', [TuningController::class, 'apiSell']);
+    Route::get('/my-garage', [TuningController::class, 'apiGarage']);
+    
 });

@@ -36,9 +36,6 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    /**
-     * Updates internal game metrics plus custom ride and reppin' territory.
-     */
     public function updateStats(Request $request): RedirectResponse
     {
         $user = Auth::user();
@@ -74,6 +71,7 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
+    // Web dashboard view (for browser)
     public function index()
     {
         $myGarageCars = \App\Models\GarageCar::where('user_id', Auth::id())
@@ -86,5 +84,50 @@ class ProfileController extends Controller
                         ->get();
 
         return view('dashboard', compact('myGarageCars', 'recentRaces'));
+    }
+
+    // ── API endpoints (return JSON for Flutter) ───────────────────────────
+
+    public function apiDashboard(Request $request)
+    {
+        $user = $request->user();
+
+        $garage = \App\Models\GarageCar::where('user_id', $user->id)
+                    ->with('baseCar')
+                    ->get()
+                    ->map(function ($gc) {
+                        return [
+                            'id'                    => $gc->id,
+                            'make_model'            => $gc->baseCar->make_model ?? 'Unknown',
+                            'current_hp'            => $gc->current_hp,
+                            'current_torque'        => $gc->current_torque,
+                            'mechanical_efficiency' => $gc->mechanical_efficiency,
+                            'calculated_valuation'  => $gc->calculated_valuation,
+                        ];
+                    });
+
+        return response()->json([
+            'user'   => $user,
+            'garage' => $garage,
+        ]);
+    }
+
+    public function apiUpdateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        if ($request->filled('signature_car')) {
+            $user->signature_car = $request->signature_car;
+        }
+        if ($request->filled('territory')) {
+            $user->territory = $request->territory;
+        }
+        if ($request->filled('race_specialty')) {
+            $user->race_specialty = $request->race_specialty;
+        }
+
+        $user->save();
+
+        return response()->json(['user' => $user->fresh()]);
     }
 }
