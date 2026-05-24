@@ -32,33 +32,33 @@ class DatabaseSeeder extends Seeder
             ['Subaru Impreza WRX STi',           300, 300, 31000,  'C', '2.5L H4 Turbo',  159, '6-speed Manual',  1495],
 
             // --- Muscle & Heavy Hitters ---
-            ['Ford Mustang GT',                  300, 320, 35000,  'B', '4.6L V8',        155, '5-speed Manual',  1597],
-            ['Pontiac GTO',                      400, 400, 34000,  'B', '6.0L V8',        175, '6-speed Manual',  1740],
-            ['Vauxhall Monaro VXR',              400, 395, 36000,  'B', '6.0L V8',        170, '6-speed Manual',  1790],
-            ['Mercedes-Benz CLK 500',            302, 339, 45000,  'B', '5.0L V8',        155, '7-speed Auto',    1785],
-            ['Mercedes-Benz SL 500',             302, 339, 48000,  'B', '5.0L V8',        155, '7-speed Auto',    1870],
+            ['Ford Mustang GT',                  300, 320, 55000,  'B', '4.6L V8',        155, '5-speed Manual',  1597],
+            ['Pontiac GTO',                      380, 371, 64000,  'B', '6.0L V8',        175, '6-speed Manual',  1740],
+            ['Vauxhall Monaro VXR',              360, 365, 76000,  'B', '6.0L V8',        170, '6-speed Manual',  1790],
+            ['Mercedes-Benz CLK 500',            302, 339, 75000,  'B', '5.0L V8',        155, '7-speed Auto',    1785],
+            ['Mercedes-Benz SL 500',             302, 339, 98000,  'B', '5.0L V8',        155, '7-speed Auto',    1870],
 
             // --- High Performance Exotics ---
-            ['Lotus Elise',                      190, 138, 42000,  'B', '1.8L I4 S/C',    150, '6-speed Manual',   875],
-            ['Porsche Cayman S',                 295, 251, 47000,  'B', '3.4L H6',        165, '6-speed Manual',  1350],
-            ['Porsche 911 Carrera S',            355, 295, 55000,  'B', '3.8L H6',        182, '6-speed Manual',  1395],
-            ['Chevrolet Corvette C6',            400, 400, 52000,  'B', '6.0L V8',        186, '6-speed Manual',  1495],
-            ['Aston Martin DB9',                 450, 420, 75000,  'A', '6.0L V12',       186, '6-speed Auto',    1760],
-            ['Porsche 911 Turbo S',              444, 457, 82000,  'A', '3.6L H6 Turbo',  193, '6-speed Manual',  1585],
-            ['Porsche 911 GT2',                  476, 472, 88000,  'A', '3.6L H6 Turbo',  204, '6-speed Manual',  1440],
-            ['Mercedes-Benz SL 65 AMG',          604, 738, 95000,  'A', '6.0L V12 Biturbo', 199, '5-speed Auto', 1990],
-            ['Dodge Viper SRT10',                500, 525, 70000,  'A', '8.3L V10',       190, '6-speed Manual',  1550],
+            ['Lotus Elise',                      400, 436, 142000,  'B', '1.8L I4 S/C',    150, '6-speed Manual',   875],
+            ['Porsche Cayman S',                 390, 445, 147000,  'B', '3.4L H6',        165, '6-speed Manual',  1350],
+            ['Porsche 911 Carrera S',            415, 420, 155000,  'B', '3.8L H6',        182, '6-speed Manual',  1395],
+            ['Chevrolet Corvette C6',            445, 400, 152000,  'B', '6.0L V8',        186, '6-speed Manual',  1495],
+            ['Aston Martin DB9',                 450, 420, 275000,  'A', '6.0L V12',       186, '6-speed Auto',    1760],
+            ['Porsche 911 Turbo S',              444, 457, 282000,  'A', '3.6L H6 Turbo',  193, '6-speed Manual',  1585],
+            ['Porsche 911 GT2',                  476, 472, 288000,  'A', '3.6L H6 Turbo',  204, '6-speed Manual',  1440],
+            ['Mercedes-Benz SL 65 AMG',          515, 530, 295000,  'A', '6.0L V12 Biturbo', 199, '5-speed Auto', 1990],
+            ['Dodge Viper SRT10',                500, 525, 270000,  'A', '8.3L V10',       190, '6-speed Manual',  1550],
 
             // --- Hyper Tier / End Game ---
-            ['Lamborghini Gallardo',             493, 376, 92000,  'S', '5.0L V10',       192, '6-speed Manual',  1430],
-            ['Lamborghini Murciélago',           572, 479, 118000, 'S', '6.5L V12',       205, '6-speed Manual',  1665],
-            ['Ford GT',                          550, 500, 130000, 'S', '5.4L V8 S/C',    205, '6-speed Manual',  1585],
-            ['Porsche Carrera GT',               605, 435, 145000, 'S', '5.7L V10',       205, '6-speed Manual',  1380],
-            ['Mercedes-Benz SLR McLaren',        617, 575, 165000, 'S', '5.4L V8 S/C',    208, '5-speed Auto',    1768],
+            ['Lamborghini Gallardo',             586, 634, 902000,  'S', '5.0L V10',       192, '6-speed Manual',  1430],
+            ['Lamborghini Murciélago',           612, 642, 1088000, 'S', '6.5L V12',       205, '6-speed Manual',  1665],
+            ['Ford GT',                          615, 635, 1030000, 'S', '5.4L V8 S/C',    205, '6-speed Manual',  1585],
+            ['Porsche Carrera GT',               618, 650, 1145000, 'S', '5.7L V10',       205, '6-speed Manual',  1380],
+            ['Mercedes-Benz SLR McLaren',        625, 630, 1265000, 'S', '5.4L V8 S/C',    208, '5-speed Auto',    1768],
 
             // --- Track Specials & Iconic Legend ---
-            ['Chevrolet Corvette C6.R',          590, 470, 210000, 'S', '7.0L V8',        199, '6-speed Sequential', 1250],
-            ['BMW M3 GTR',                       443, 354, 250000, 'S', '4.0L V8',        200, '6-speed Sequential', 1430],
+            ['Chevrolet Corvette C6.R',          685, 700, 5500000, 'S', '7.0L V8',        199, '6-speed Sequential', 1250],
+            ['BMW M3 GTR',                       700, 730, 1050000, 'S', '4.0L V8',        200, '6-speed Sequential', 1430],
         ];
 
         foreach ($roster as $car) {
